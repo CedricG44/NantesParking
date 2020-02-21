@@ -2,7 +2,7 @@ package fr.cedric.garcia.nantes.parking.model.parking
 
 import fr.cedric.garcia.nantes.parking.model.Location
 
-class Parking(
+data class Parking(
 
         val id: Int,
         val fullName: String,
