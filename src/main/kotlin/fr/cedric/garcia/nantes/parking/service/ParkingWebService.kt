@@ -25,23 +25,25 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
     private val webClient = WebClient.create(configuration.datasetsBaseUrl)
 
     suspend fun getParkings(): Flow<Parking> =
-            buildQuery(webClient.get()
+            webClient.get()
                     .uri("/${configuration.publicParkingsKey}") {
                         it.path(RECORDS_PATH)
                                 .queryParam("rows", 30)
                                 .build()
-                    }, ParkingResponse::class.java)
+                    }
+                    .buildQueryForType(ParkingResponse::class.java)
                     .map { p -> p.records.map { Parking.mapToParking(it.record.fields) } }
                     .flatMapMany { Flux.fromIterable(it) }
                     .asFlow()
 
     suspend fun getParking(parkingId: String): Mono<Parking> =
-            buildQuery(webClient.get()
+            webClient.get()
                     .uri("/${configuration.publicParkingsKey}") {
                         it.path(RECORDS_PATH)
                                 .queryParam("where", "idobj like \"$parkingId\"")
                                 .build()
-                    }, ParkingResponse::class.java)
+                    }
+                    .buildQueryForType(ParkingResponse::class.java)
                     .flatMap {
                         if (it.records.isNotEmpty())
                             Mono.just(Parking.mapToParking(it.records.first().record.fields))
@@ -50,23 +52,25 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                     }
 
     suspend fun getAvailabilities(): Flow<Availability> =
-            buildQuery(webClient.get()
+            webClient.get()
                     .uri("/${configuration.publicParkingsAvailabilityKey}") {
                         it.path(RECORDS_PATH)
                                 .queryParam("rows", 30)
                                 .build()
-                    }, AvailabilityResponse::class.java)
+                    }
+                    .buildQueryForType(AvailabilityResponse::class.java)
                     .map { a -> a.records.map { Availability.mapToAvailability(it.record.fields) } }
                     .flatMapMany { Flux.fromIterable(it) }
                     .asFlow()
 
     suspend fun getAvailability(parkingId: String): Mono<Availability> =
-            buildQuery(webClient.get()
+            webClient.get()
                     .uri("/${configuration.publicParkingsAvailabilityKey}") {
                         it.path(RECORDS_PATH)
                                 .queryParam("where", "idobj like \"$parkingId\"")
                                 .build()
-                    }, AvailabilityResponse::class.java)
+                    }
+                    .buildQueryForType(AvailabilityResponse::class.java)
                     .flatMap {
                         if (it.records.isNotEmpty())
                             Mono.just(Availability.mapToAvailability(it.records.first().record.fields))
@@ -75,23 +79,25 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                     }
 
     suspend fun getPricings(): Flow<Pricing> =
-            buildQuery(webClient.get()
+            webClient.get()
                     .uri("/${configuration.publicParkingsPricingKey}") {
                         it.path(RECORDS_PATH)
                                 .queryParam("rows", 30)
                                 .build()
-                    }, PricingResponse::class.java)
+                    }
+                    .buildQueryForType(PricingResponse::class.java)
                     .map { p -> p.records.map { Pricing.mapToPricing(it.record.fields) } }
                     .flatMapMany { Flux.fromIterable(it) }
                     .asFlow()
 
     suspend fun getPricing(parkingId: String): Mono<Pricing> =
-            buildQuery(webClient.get()
+            webClient.get()
                     .uri("/${configuration.publicParkingsPricingKey}") {
                         it.path(RECORDS_PATH)
                                 .queryParam("where", "idobj like \"$parkingId\"")
                                 .build()
-                    }, PricingResponse::class.java)
+                    }
+                    .buildQueryForType(PricingResponse::class.java)
                     .flatMap {
                         if (it.records.isNotEmpty())
                             Mono.just(Pricing.mapToPricing(it.records.first().record.fields))
@@ -99,8 +105,8 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                             Mono.empty<Pricing>()
                     }
 
-    private fun <T> buildQuery(request: WebClient.RequestHeadersSpec<*>, responseClass: Class<T>): Mono<T> =
-            request.accept(APPLICATION_JSON)
+    private fun <T> WebClient.RequestHeadersSpec<*>.buildQueryForType(responseClass: Class<T>): Mono<T> =
+            this.accept(APPLICATION_JSON)
                     .retrieve()
                     .onStatus(HttpStatus::is4xxClientError) { handle4xxServerError(it.rawStatusCode()) }
                     .onStatus(HttpStatus::is5xxServerError) { handle5xxServerError(it.rawStatusCode()) }
