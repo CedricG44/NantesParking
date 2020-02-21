@@ -1,0 +1,5 @@
+opendata-nantes:
+  datasets-base-url: "https://data.nantesmetropole.fr/api/v2/catalog/datasets"
+  public-parkings-key: "244400404_parkings-publics-nantes"
+  public-parkings-availability-key: "244400404_parkings-publics-nantes-disponibilites"
+  public-parkings-pricing-key: "244400404_parkings-publics-nantes-tarification-horaire"
