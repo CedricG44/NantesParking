@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.ServerResponse.*
+import org.springframework.web.reactive.function.server.bodyAndAwait
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
@@ -17,11 +18,7 @@ import reactor.core.scheduler.Schedulers
 class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService) {
 
     suspend fun getParkings(request: ServerRequest): ServerResponse =
-            parkingWebService
-                    .getParkings()
-                    .flatMap { ok().bodyValue(it) }
-                    .onErrorResume { handleError(it) }
-                    .awaitFirst()
+            ok().bodyAndAwait(parkingWebService.getParkings())
 
     suspend fun getParking(request: ServerRequest): ServerResponse {
         val parkingId = request.pathVariable("id")
@@ -39,11 +36,7 @@ class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService
     }
 
     suspend fun getAvailabilities(request: ServerRequest): ServerResponse =
-            parkingWebService
-                    .getAvailabilities()
-                    .flatMap { ok().bodyValue(it) }
-                    .onErrorResume { handleError(it) }
-                    .awaitFirst()
+            ok().bodyAndAwait(parkingWebService.getAvailabilities())
 
     suspend fun getAvailability(request: ServerRequest): ServerResponse {
         val parkingId = request.pathVariable("id")
@@ -55,10 +48,7 @@ class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService
     }
 
     suspend fun getPricings(request: ServerRequest): ServerResponse =
-            parkingWebService.getPricings()
-                    .flatMap { ok().bodyValue(it) }
-                    .onErrorResume { handleError(it) }
-                    .awaitFirst()
+            ok().bodyAndAwait(parkingWebService.getPricings())
 
     suspend fun getPricing(request: ServerRequest): ServerResponse {
         val parkingId = request.pathVariable("id")

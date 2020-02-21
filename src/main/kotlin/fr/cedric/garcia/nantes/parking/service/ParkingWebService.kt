@@ -8,12 +8,15 @@ import fr.cedric.garcia.nantes.parking.model.parking.Parking
 import fr.cedric.garcia.nantes.parking.model.parking.ParkingResponse
 import fr.cedric.garcia.nantes.parking.model.pricing.Pricing
 import fr.cedric.garcia.nantes.parking.model.pricing.PricingResponse
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Service
@@ -21,7 +24,7 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
 
     private val webClient = WebClient.create(configuration.datasetsBaseUrl)
 
-    suspend fun getParkings(): Mono<List<Parking>> =
+    suspend fun getParkings(): Flow<Parking> =
             buildQuery(webClient.get()
                     .uri("/${configuration.publicParkingsKey}") {
                         it.path(RECORDS_PATH)
@@ -29,6 +32,8 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                                 .build()
                     }, ParkingResponse::class.java)
                     .map { p -> p.records.map { Parking.mapToParking(it.record.fields) } }
+                    .flatMapMany { Flux.fromIterable(it) }
+                    .asFlow()
 
     suspend fun getParking(parkingId: String): Mono<Parking> =
             buildQuery(webClient.get()
@@ -44,7 +49,7 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                             Mono.empty<Parking>()
                     }
 
-    suspend fun getAvailabilities(): Mono<List<Availability>> =
+    suspend fun getAvailabilities(): Flow<Availability> =
             buildQuery(webClient.get()
                     .uri("/${configuration.publicParkingsAvailabilityKey}") {
                         it.path(RECORDS_PATH)
@@ -52,6 +57,8 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                                 .build()
                     }, AvailabilityResponse::class.java)
                     .map { a -> a.records.map { Availability.mapToAvailability(it.record.fields) } }
+                    .flatMapMany { Flux.fromIterable(it) }
+                    .asFlow()
 
     suspend fun getAvailability(parkingId: String): Mono<Availability> =
             buildQuery(webClient.get()
@@ -67,7 +74,7 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                             Mono.empty<Availability>()
                     }
 
-    suspend fun getPricings(): Mono<List<Pricing>> =
+    suspend fun getPricings(): Flow<Pricing> =
             buildQuery(webClient.get()
                     .uri("/${configuration.publicParkingsPricingKey}") {
                         it.path(RECORDS_PATH)
@@ -75,6 +82,8 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                                 .build()
                     }, PricingResponse::class.java)
                     .map { p -> p.records.map { Pricing.mapToPricing(it.record.fields) } }
+                    .flatMapMany { Flux.fromIterable(it) }
+                    .asFlow()
 
     suspend fun getPricing(parkingId: String): Mono<Pricing> =
             buildQuery(webClient.get()
