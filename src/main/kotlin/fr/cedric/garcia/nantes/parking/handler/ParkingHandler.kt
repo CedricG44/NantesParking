@@ -2,19 +2,21 @@ package fr.cedric.garcia.nantes.parking.handler
 
 import fr.cedric.garcia.nantes.parking.exception.OpenDataNantesException
 import fr.cedric.garcia.nantes.parking.model.availability.Availability
-import fr.cedric.garcia.nantes.parking.model.error.OpenDataNantesError
 import fr.cedric.garcia.nantes.parking.model.parking.Parking
 import fr.cedric.garcia.nantes.parking.model.pricing.Pricing
 import fr.cedric.garcia.nantes.parking.service.ParkingWebService
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.http.MediaType.APPLICATION_STREAM_JSON
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.ServerResponse.*
+import org.springframework.web.reactive.function.server.ServerResponse.notFound
+import org.springframework.web.reactive.function.server.ServerResponse.ok
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
@@ -23,7 +25,8 @@ class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService
 
     suspend fun getParkings(request: ServerRequest): ServerResponse =
             ok().contentType(APPLICATION_STREAM_JSON)
-                    .body(parkingWebService.getParkings(), Parking::class.java)
+                    .body(parkingWebService.getParkings()
+                            .onErrorMap(this::handleError), Parking::class.java)
                     .awaitFirst()
 
     suspend fun getParking(request: ServerRequest): ServerResponse {
@@ -33,9 +36,9 @@ class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService
         return if (!withAvailability)
             parkingWebService
                     .getParking(parkingId)
-                    .flatMap { ok().contentType(APPLICATION_JSON).bodyValue(it) }
+                    .flatMap(ok().contentType(APPLICATION_JSON)::bodyValue)
                     .switchIfEmpty(notFound().build())
-                    .onErrorResume { handleError(it) }
+                    .onErrorMap(this::handleError)
                     .awaitFirst()
         else
             getParkingWithAvailability(parkingId).awaitFirst()
@@ -43,29 +46,31 @@ class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService
 
     suspend fun getAvailabilities(request: ServerRequest): ServerResponse =
             ok().contentType(APPLICATION_STREAM_JSON)
-                    .body(parkingWebService.getAvailabilities(), Availability::class.java)
+                    .body(parkingWebService.getAvailabilities()
+                            .onErrorMap(this::handleError), Availability::class.java)
                     .awaitFirst()
 
     suspend fun getAvailability(request: ServerRequest): ServerResponse {
         val parkingId = request.pathVariable("id")
         return parkingWebService.getAvailability(parkingId)
-                .flatMap { ok().contentType(APPLICATION_JSON).bodyValue(it) }
+                .flatMap(ok().contentType(APPLICATION_JSON)::bodyValue)
                 .switchIfEmpty(notFound().build())
-                .onErrorResume { handleError(it) }
+                .onErrorMap(this::handleError)
                 .awaitFirst()
     }
 
     suspend fun getPricings(request: ServerRequest): ServerResponse =
             ok().contentType(APPLICATION_STREAM_JSON)
-                    .body(parkingWebService.getPricings(), Pricing::class.java)
+                    .body(parkingWebService.getPricings()
+                            .onErrorMap(this::handleError), Pricing::class.java)
                     .awaitFirst()
 
     suspend fun getPricing(request: ServerRequest): ServerResponse {
         val parkingId = request.pathVariable("id")
         return parkingWebService.getPricing(parkingId)
-                .flatMap { ok().contentType(APPLICATION_JSON).bodyValue(it) }
+                .flatMap(ok().contentType(APPLICATION_JSON)::bodyValue)
                 .switchIfEmpty(notFound().build())
-                .onErrorResume { handleError(it) }
+                .onErrorMap(this::handleError)
                 .awaitFirst()
     }
 
@@ -75,14 +80,14 @@ class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService
                     parkingWebService.getAvailability(parkingId).subscribeOn(Schedulers.elastic())) { p, a ->
                 mapOf("parking" to p, "availability" to a)
             }
-                    .flatMap { ok().contentType(APPLICATION_JSON).bodyValue(it) }
+                    .flatMap(ok().contentType(APPLICATION_JSON)::bodyValue)
                     .switchIfEmpty(notFound().build())
-                    .onErrorResume { handleError(it) }
+                    .onErrorMap(this::handleError)
 
-    private fun handleError(error: Throwable): Mono<ServerResponse> =
+    private fun handleError(error: Throwable): ResponseStatusException =
             when (error) {
                 is OpenDataNantesException ->
-                    status(error.status).bodyValue(OpenDataNantesError(error.status, error.message))
-                else -> status(INTERNAL_SERVER_ERROR).build()
+                    ResponseStatusException(HttpStatus.valueOf(error.status), error.message)
+                else -> ResponseStatusException(INTERNAL_SERVER_ERROR)
             }
 }
