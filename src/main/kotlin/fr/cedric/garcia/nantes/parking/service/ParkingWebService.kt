@@ -29,7 +29,7 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                                 .queryParam("rows", 30)
                                 .build()
                     }
-                    .buildQueryForType(ParkingResponse::class.java)
+                    .buildRequestForType(ParkingResponse::class.java)
                     .map { p -> p.records.map { Parking.mapToParking(it.record.fields) } }
                     .flatMapMany { Flux.fromIterable(it) }
 
@@ -40,7 +40,7 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                                 .queryParam("where", "idobj like \"$parkingId\"")
                                 .build()
                     }
-                    .buildQueryForType(ParkingResponse::class.java)
+                    .buildRequestForType(ParkingResponse::class.java)
                     .flatMap {
                         if (it.records.isNotEmpty())
                             Mono.just(Parking.mapToParking(it.records.first().record.fields))
@@ -55,7 +55,7 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                                 .queryParam("rows", 30)
                                 .build()
                     }
-                    .buildQueryForType(AvailabilityResponse::class.java)
+                    .buildRequestForType(AvailabilityResponse::class.java)
                     .map { a -> a.records.map { Availability.mapToAvailability(it.record.fields) } }
                     .flatMapMany { Flux.fromIterable(it) }
 
@@ -66,7 +66,7 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                                 .queryParam("where", "idobj like \"$parkingId\"")
                                 .build()
                     }
-                    .buildQueryForType(AvailabilityResponse::class.java)
+                    .buildRequestForType(AvailabilityResponse::class.java)
                     .flatMap {
                         if (it.records.isNotEmpty())
                             Mono.just(Availability.mapToAvailability(it.records.first().record.fields))
@@ -81,7 +81,7 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                                 .queryParam("rows", 30)
                                 .build()
                     }
-                    .buildQueryForType(PricingResponse::class.java)
+                    .buildRequestForType(PricingResponse::class.java)
                     .map { p -> p.records.map { Pricing.mapToPricing(it.record.fields) } }
                     .flatMapMany { Flux.fromIterable(it) }
 
@@ -92,7 +92,7 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                                 .queryParam("where", "idobj like \"$parkingId\"")
                                 .build()
                     }
-                    .buildQueryForType(PricingResponse::class.java)
+                    .buildRequestForType(PricingResponse::class.java)
                     .flatMap {
                         if (it.records.isNotEmpty())
                             Mono.just(Pricing.mapToPricing(it.records.first().record.fields))
@@ -100,7 +100,7 @@ class ParkingWebService(@Autowired private val configuration: OpenDataNantesConf
                             Mono.empty<Pricing>()
                     }
 
-    private fun <T> WebClient.RequestHeadersSpec<*>.buildQueryForType(responseClass: Class<T>): Mono<T> =
+    private fun <T> WebClient.RequestHeadersSpec<*>.buildRequestForType(responseClass: Class<T>): Mono<T> =
             this.accept(APPLICATION_JSON)
                     .retrieve()
                     .onStatus(HttpStatus::is4xxClientError) { handle4xxServerError(it.rawStatusCode()) }

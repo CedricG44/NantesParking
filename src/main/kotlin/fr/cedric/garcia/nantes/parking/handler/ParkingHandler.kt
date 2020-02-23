@@ -34,14 +34,10 @@ class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService
         val withAvailability = request.queryParam("withAvailability").orElseGet { "false" }.toBoolean()
 
         return if (!withAvailability)
-            parkingWebService
-                    .getParking(parkingId)
-                    .flatMap(ok().contentType(APPLICATION_JSON)::bodyValue)
-                    .switchIfEmpty(notFound().build())
-                    .onErrorMap(this::handleError)
-                    .awaitFirst()
+            parkingWebService.getParking(parkingId)
+                    .handleWebServiceResponse()
         else
-            getParkingWithAvailability(parkingId).awaitFirst()
+            getParkingWithAvailability(parkingId)
     }
 
     suspend fun getAvailabilities(request: ServerRequest): ServerResponse =
@@ -53,10 +49,7 @@ class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService
     suspend fun getAvailability(request: ServerRequest): ServerResponse {
         val parkingId = request.pathVariable("id")
         return parkingWebService.getAvailability(parkingId)
-                .flatMap(ok().contentType(APPLICATION_JSON)::bodyValue)
-                .switchIfEmpty(notFound().build())
-                .onErrorMap(this::handleError)
-                .awaitFirst()
+                .handleWebServiceResponse()
     }
 
     suspend fun getPricings(request: ServerRequest): ServerResponse =
@@ -68,21 +61,22 @@ class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService
     suspend fun getPricing(request: ServerRequest): ServerResponse {
         val parkingId = request.pathVariable("id")
         return parkingWebService.getPricing(parkingId)
-                .flatMap(ok().contentType(APPLICATION_JSON)::bodyValue)
-                .switchIfEmpty(notFound().build())
-                .onErrorMap(this::handleError)
-                .awaitFirst()
+                .handleWebServiceResponse()
     }
 
-    suspend fun getParkingWithAvailability(parkingId: String): Mono<ServerResponse> =
+    suspend fun getParkingWithAvailability(parkingId: String): ServerResponse =
             Mono.zip(
                     parkingWebService.getParking(parkingId).subscribeOn(Schedulers.elastic()),
                     parkingWebService.getAvailability(parkingId).subscribeOn(Schedulers.elastic())) { p, a ->
                 mapOf("parking" to p, "availability" to a)
             }
-                    .flatMap(ok().contentType(APPLICATION_JSON)::bodyValue)
+                    .handleWebServiceResponse()
+
+    private suspend fun Mono<*>.handleWebServiceResponse(): ServerResponse =
+            this.flatMap(ok().contentType(APPLICATION_JSON)::bodyValue)
                     .switchIfEmpty(notFound().build())
-                    .onErrorMap(this::handleError)
+                    .onErrorMap { handleError(it) }
+                    .awaitFirst()
 
     private fun handleError(error: Throwable): ResponseStatusException =
             when (error) {
