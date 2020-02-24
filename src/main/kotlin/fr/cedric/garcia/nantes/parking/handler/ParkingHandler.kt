@@ -1,6 +1,7 @@
 package fr.cedric.garcia.nantes.parking.handler
 
 import fr.cedric.garcia.nantes.parking.exception.OpenDataNantesException
+import fr.cedric.garcia.nantes.parking.model.ParkingWithAvailability
 import fr.cedric.garcia.nantes.parking.model.availability.Availability
 import fr.cedric.garcia.nantes.parking.model.parking.Parking
 import fr.cedric.garcia.nantes.parking.model.pricing.Pricing
@@ -68,7 +69,7 @@ class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService
             Mono.zip(
                     parkingWebService.getParking(parkingId).subscribeOn(Schedulers.elastic()),
                     parkingWebService.getAvailability(parkingId).subscribeOn(Schedulers.elastic())) { p, a ->
-                mapOf("parking" to p, "availability" to a)
+                ParkingWithAvailability(p, a)
             }
                     .handleWebServiceResponse()
 

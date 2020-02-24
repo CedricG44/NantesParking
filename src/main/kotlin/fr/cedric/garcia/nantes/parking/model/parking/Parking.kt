@@ -38,7 +38,7 @@ data class Parking(
                         parkingFields.nom_complet,
                         parkingFields.presentation ?: "",
                         parkingFields.libtype ?: "",
-                        parkingFields.libcategorie ?: "",
+                        parkingFields.libcategorie,
                         parkingFields.exploitant ?: "",
                         parkingFields.telephone,
                         parkingFields.site_web,
