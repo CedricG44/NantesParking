@@ -1,6 +1,7 @@
 package fr.cedric.garcia.nantes.parking.handler
 
 import fr.cedric.garcia.nantes.parking.exception.OpenDataNantesException
+import fr.cedric.garcia.nantes.parking.model.Location
 import fr.cedric.garcia.nantes.parking.model.ParkingWithAvailability
 import fr.cedric.garcia.nantes.parking.model.availability.Availability
 import fr.cedric.garcia.nantes.parking.model.parking.Parking
@@ -9,6 +10,7 @@ import fr.cedric.garcia.nantes.parking.service.ParkingWebService
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.http.MediaType.APPLICATION_STREAM_JSON
@@ -72,6 +74,29 @@ class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService
                 ParkingWithAvailability(p, a)
             }
                     .handleWebServiceResponse()
+
+    suspend fun getNearestParking(request: ServerRequest): ServerResponse {
+        val latitude = request.getRequestDoubleParameter("latitude")
+        val longitude = request.getRequestDoubleParameter("longitude")
+
+        return parkingWebService.getParkings()
+                .collectMap { Location.distance(Location(latitude, longitude), it.location) }
+                .flatMap { m ->
+                    if (m.isNotEmpty())
+                        Mono.just(m.toSortedMap(compareBy { it }).values.first())
+                    else
+                        Mono.empty<Parking>()
+                }
+                .handleWebServiceResponse()
+    }
+
+    private fun ServerRequest.getRequestDoubleParameter(name: String): Double =
+            try {
+                this.queryParam(name)
+                        .orElseThrow { ResponseStatusException(BAD_REQUEST, "Missing $name parameter") }.toDouble()
+            } catch (error: NumberFormatException) {
+                throw ResponseStatusException(BAD_REQUEST, "${name.capitalize()} parameter value must be double")
+            }
 
     private suspend fun Mono<*>.handleWebServiceResponse(): ServerResponse =
             this.flatMap(ok().contentType(APPLICATION_JSON)::bodyValue)

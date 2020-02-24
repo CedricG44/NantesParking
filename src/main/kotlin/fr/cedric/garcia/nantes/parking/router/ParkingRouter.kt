@@ -11,6 +11,7 @@ class ParkingRouter {
     @Bean
     fun productRoutes(parkingHandler: ParkingHandler) = coRouter {
         "/parking".nest {
+            GET("/nearest", parkingHandler::getNearestParking)
             GET("/pricing", parkingHandler::getPricings)
             GET("/availability", parkingHandler::getAvailabilities)
             GET("/{id}/pricing", parkingHandler::getPricing)
