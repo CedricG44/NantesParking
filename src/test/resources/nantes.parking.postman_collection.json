@@ -1,0 +1,195 @@
+{
+	"info": {
+		"_postman_id": "7b49f343-6ab2-487f-9bac-c6f9c5cd508a",
+		"name": "nantes.parking",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/parking",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/parking",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"parking"
+					]
+				},
+				"description": "Retrieve all parkings"
+			},
+			"response": []
+		},
+		{
+			"name": "/parking/availability",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/parking/availability",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"parking",
+						"availability"
+					]
+				},
+				"description": "Retrieve all parkings availabilities"
+			},
+			"response": []
+		},
+		{
+			"name": "/parking/pricing",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/parking/pricing",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"parking",
+						"pricing"
+					]
+				},
+				"description": "Retrieve all parkings pricings"
+			},
+			"response": []
+		},
+		{
+			"name": "/parking/nearest",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/parking/nearest?latitude=46.2173&longitude=-1.65534",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"parking",
+						"nearest"
+					],
+					"query": [
+						{
+							"key": "latitude",
+							"value": "46.2173"
+						},
+						{
+							"key": "longitude",
+							"value": "-1.65534"
+						}
+					]
+				},
+				"description": "Retrieve the nearest parking based on latitude/longitude"
+			},
+			"response": []
+		},
+		{
+			"name": "/parking/id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/parking/3951",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"parking",
+						"3951"
+					]
+				},
+				"description": "Retrieve a parking"
+			},
+			"response": []
+		},
+		{
+			"name": "/parking/id (with availability)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/parking/3951?withAvailability=true",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"parking",
+						"3951"
+					],
+					"query": [
+						{
+							"key": "withAvailability",
+							"value": "true"
+						}
+					]
+				},
+				"description": "Retrieve a parking with its availability"
+			},
+			"response": []
+		},
+		{
+			"name": "/parking/id/availability",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/parking/3951/availability",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"parking",
+						"3951",
+						"availability"
+					]
+				},
+				"description": "Retrieve a parking availability"
+			},
+			"response": []
+		},
+		{
+			"name": "/parking/id/pricing",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/parking/3951/pricing",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"parking",
+						"3951",
+						"pricing"
+					]
+				},
+				"description": "Retrieve a parking pricing"
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
