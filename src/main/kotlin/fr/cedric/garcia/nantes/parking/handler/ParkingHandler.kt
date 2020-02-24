@@ -76,8 +76,8 @@ class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService
                     .handleWebServiceResponse()
 
     suspend fun getNearestParking(request: ServerRequest): ServerResponse {
-        val latitude = request.getRequestDoubleParameter("latitude")
-        val longitude = request.getRequestDoubleParameter("longitude")
+        val latitude = request.getDoubleParameter("latitude")
+        val longitude = request.getDoubleParameter("longitude")
 
         return parkingWebService.getParkings()
                 .collectMap { Location.distance(Location(latitude, longitude), it.location) }
@@ -90,7 +90,7 @@ class ParkingHandler(@Autowired private val parkingWebService: ParkingWebService
                 .handleWebServiceResponse()
     }
 
-    private fun ServerRequest.getRequestDoubleParameter(name: String): Double =
+    private fun ServerRequest.getDoubleParameter(name: String): Double =
             try {
                 this.queryParam(name)
                         .orElseThrow { ResponseStatusException(BAD_REQUEST, "Missing $name parameter") }.toDouble()
