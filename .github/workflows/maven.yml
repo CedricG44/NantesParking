@@ -19,10 +19,10 @@ jobs:
         run: mvn clean compile
 
       - name: Test with Maven
-        run: mvn clean test
+        run: mvn test
 
       - name: Containerize with Jib
-        run: mvn compile jib:build
+        run: mvn jib:build
         env:
           REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}

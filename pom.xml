@@ -101,10 +101,7 @@
                         <image>gcr.io/distroless/java:11</image>
                     </from>
                     <to>
-                        <image>cloud.canister.io:5000/cedricgarcia/nantes-parking</image>
-                        <tags>
-                            <tag>${project.version}</tag>
-                        </tags>
+                        <image>cloud.canister.io:5000/cedricgarcia/nantes-parking:${project.version}</image>
                         <auth>
                             <!--suppress UnresolvedMavenProperty -->
                             <username>${env.REGISTRY_USERNAME}</username>
